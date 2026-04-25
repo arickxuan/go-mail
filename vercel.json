@@ -1,4 +1,5 @@
 {
+  "framework": "go",
     "builds": [
       {
         "src": "main.go",
