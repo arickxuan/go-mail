@@ -1,0 +1,28 @@
+*.exe
+*.dll
+.so
+.dylib
+Test binary
+*.test
+Go workspace
+go.work
+go.work.sum
+IDE
+.idea/
+.vscode/
+*.swp
+.swo
+~
+OS
+.DS_Store
+Thumbs.db
+Build artifacts
+/tmp/
+/dist/
+Secrets & data - DO NOT COMMIT
+accounts.json
+*.pem
+*.key
+.env
+Dependencies (managed by go.sum)
+/vendor/

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build *)",
+      "Bash(go doc *)",
+      "Bash(go run *)",
+      "Bash(curl -sv http://localhost:8080/)",
+      "Bash(lsof -ti:8080)",
+      "Bash(xargs kill *)",
+      "Bash(curl -s http://localhost:8080/accounts)",
+      "Bash(curl -s http://localhost:8080/import)",
+      "Bash(curl -s http://localhost:8080/accounts/add)"
+    ]
+  }
+}
