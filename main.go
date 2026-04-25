@@ -15,7 +15,11 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", ":8080", "listen address")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := flag.String("addr", ":"+port, "listen address")
 	flag.Parse()
 
 	storePath := filepath.Join(".", "accounts.json")
