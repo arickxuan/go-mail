@@ -582,11 +582,12 @@ function getAdminToken(){
 
 
 function setAdminToken(token){
-  localStorage.setItem('x_admin_token', token);
+  localStorage.setItem('X_ADMIN_TOKEN', token);
 }
 
 function DelAdminToken(){
   localStorage.removeItem('x_admin_token');
+  localStorage.removeItem('X_ADMIN_TOKEN');
 }
 
 // === Init ===
