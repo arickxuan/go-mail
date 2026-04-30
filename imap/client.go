@@ -220,14 +220,13 @@ func (c *Client) GetEmail(folder string, uid uint32) (*store.EmailDetail, error)
 	seqSet := imap.SeqSet{}
 	seqSet.AddNum(uid)
 
-	sectionText := []string{"BODY[TEXT]", "BODY[1]", "BODY[2]"}
+	// Full RFC822 so multipart boundaries + Content-Type headers parse correctly (BODY[TEXT] alone cannot).
 	fetchOptions := &imap.FetchOptions{
 		Envelope: true,
 		BodySection: []*imap.FetchItemBodySection{
-			{Peek: true, Specifier: imap.PartSpecifierText},
+			{Peek: true},
 		},
 	}
-	_ = sectionText
 
 	messages, err := client.Fetch(seqSet, fetchOptions).Collect()
 	if err != nil {
@@ -249,7 +248,10 @@ func (c *Client) GetEmail(folder string, uid uint32) (*store.EmailDetail, error)
 
 	for _, section := range msg.BodySection {
 		if len(section.Bytes) > 0 {
-			detail.HTMLBody = string(section.Bytes)
+			text, html, attachments := parseRFC822(section.Bytes)
+			detail.TextBody = text
+			detail.HTMLBody = html
+			detail.Attachments = attachments
 		}
 	}
 
