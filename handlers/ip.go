@@ -31,7 +31,7 @@ func (h *Handler) GetIPHtml(c *gin.Context) {
 	html, err := os.ReadFile("public/ip.html")
 	if err != nil {
 		infos1, _ := util.ListDirectory("./")
-		infos, _ := util.ListDirectory("./dir")
+		infos, _ := util.ListDirectory("./___vc")
 
 		//c.JSON(http.StatusOK, gin.H{"files": infos})
 		c.JSON(http.StatusInternalServerError, gin.H{"files": infos, "files1": infos1, "error": "read file: " + err.Error()})
