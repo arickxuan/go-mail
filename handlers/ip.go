@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"mail0/util"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,7 +30,13 @@ func GetVisitorIP(c *gin.Context) {
 func (h *Handler) GetIPHtml(c *gin.Context) {
 	html, err := os.ReadFile("public/ip.html")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "read file: " + err.Error()})
+		infos, err2 := util.ListDirectory("public")
+		if err2 != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "list directory: " + err2.Error()})
+			return
+		}
+		//c.JSON(http.StatusOK, gin.H{"files": infos})
+		c.JSON(http.StatusInternalServerError, gin.H{"files": infos, "error": "read file: " + err.Error()})
 		return
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", html)

@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"mail0/handlers"
+	"mail0/middleware"
 	"mail0/store"
 )
 
@@ -46,10 +47,13 @@ func main() {
 
 	h := handlers.New(s)
 	api := r.Group("/api")
-	h.RegisterAPIRoutes(api)
+	apiAuth := r.Group("/api")
+	apiAuth.Use(middleware.AdminTokenAuth())
+	h.RegisterAPIRoutes(apiAuth)
 	api.GET("/ip", handlers.GetVisitorIP)
 	api.GET("/ipwho", handlers.ProxyIPWho)
 	r.GET("/ip", h.GetIPHtml)
+	r.GET("/mail", h.GetMailHtml)
 	fs := http.FileServer(http.Dir("./web"))
 
 	r.NoRoute(func(c *gin.Context) {
