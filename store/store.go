@@ -1,12 +1,26 @@
 package store
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
+
+// Redis 配置优先从环境变量读取（.env 已由 main 中 godotenv.Load 注入）：
+//   - REDIS_URL：若设置则优先解析（支持 rediss:// 等），适合云托管 Redis
+//   - REDIS_ADDR：未设置 REDIS_URL 且非空时使用，例如 localhost:6379
+//   - REDIS_PASSWORD：可选，与 REDIS_ADDR 联用
+//   - REDIS_DB：可选，默认 0
+//   - REDIS_ACCOUNTS_KEY：账户 JSON 所在键，默认 mail0:accounts
+//
+// 当启用 Redis 时，账户列表从该键读取（GET），写入时 SET；未启用时仍使用本地 accounts.json。
 
 type AccountType string
 
@@ -28,17 +42,17 @@ const (
 )
 
 type Account struct {
-	ID           string      `json:"id"`
-	Label        string      `json:"label"`
-	Email        string      `json:"email"`
-	AccountType  AccountType `json:"account_type"`
+	ID           string       `json:"id"`
+	Label        string       `json:"label"`
+	Email        string       `json:"email"`
+	AccountType  AccountType  `json:"account_type"`
 	ProviderType ProviderType `json:"provider_type"`
 
 	// IMAP settings (when type=imap)
-	IMAPServer   string `json:"imap_server,omitempty"`
-	IMAPPort     int    `json:"imap_port,omitempty"`
-	IMAPTLS      bool   `json:"imap_tls,omitempty"`
-	Password     string `json:"password,omitempty"`
+	IMAPServer string `json:"imap_server,omitempty"`
+	IMAPPort   int    `json:"imap_port,omitempty"`
+	IMAPTLS    bool   `json:"imap_tls,omitempty"`
+	Password   string `json:"password,omitempty"`
 
 	// Graph API settings (when type=graph)
 	ClientID     string `json:"client_id,omitempty"`
@@ -55,13 +69,13 @@ type Account struct {
 }
 
 type EmailSummary struct {
-	UID       uint32    `json:"uid"`
-	OpenRef   string    `json:"open_ref,omitempty"` // path segment for /mail/:openRef (Graph: base64url of message id; IMAP/POP3: decimal uid)
-	From      string    `json:"from"`
-	Subject   string    `json:"subject"`
-	Date      time.Time `json:"date"`
-	Seen      bool      `json:"seen"`
-	Size      uint32    `json:"size"`
+	UID     uint32    `json:"uid"`
+	OpenRef string    `json:"open_ref,omitempty"` // path segment for /mail/:openRef (Graph: base64url of message id; IMAP/POP3: decimal uid)
+	From    string    `json:"from"`
+	Subject string    `json:"subject"`
+	Date    time.Time `json:"date"`
+	Seen    bool      `json:"seen"`
+	Size    uint32    `json:"size"`
 }
 
 type EmailPage struct {
@@ -73,15 +87,15 @@ type EmailPage struct {
 }
 
 type EmailDetail struct {
-	UID        uint32              `json:"uid"`
-	From       string              `json:"from"`
-	To         string              `json:"to"`
-	Cc         string              `json:"cc"`
-	Subject    string              `json:"subject"`
-	Date       time.Time           `json:"date"`
-	TextBody   string              `json:"text_body"`
-	HTMLBody   string              `json:"html_body"`
-	Attachments []AttachmentInfo   `json:"attachments"`
+	UID         uint32           `json:"uid"`
+	From        string           `json:"from"`
+	To          string           `json:"to"`
+	Cc          string           `json:"cc"`
+	Subject     string           `json:"subject"`
+	Date        time.Time        `json:"date"`
+	TextBody    string           `json:"text_body"`
+	HTMLBody    string           `json:"html_body"`
+	Attachments []AttachmentInfo `json:"attachments"`
 }
 
 type AttachmentInfo struct {
@@ -95,22 +109,78 @@ type ImportRequest struct {
 }
 
 type ImportResult struct {
-	Total    int      `json:"total"`
-	Success  int      `json:"success"`
-	Failed   int      `json:"failed"`
-	Errors   []string `json:"errors"`
+	Total   int      `json:"total"`
+	Success int      `json:"success"`
+	Failed  int      `json:"failed"`
+	Errors  []string `json:"errors"`
 }
 
 type Store struct {
 	mu       sync.RWMutex
 	path     string
 	Accounts []Account `json:"accounts"`
+	rdb      *redis.Client
+	redisKey string
+}
+
+func redisOptionsFromEnv() (opts *redis.Options, err error) {
+	url := strings.TrimSpace(os.Getenv("REDIS_URL"))
+	if url != "" {
+		o, e := redis.ParseURL(url)
+		if e != nil {
+			return nil, fmt.Errorf("REDIS_URL: %w", e)
+		}
+		return o, nil
+	}
+	addr := strings.TrimSpace(os.Getenv("REDIS_ADDR"))
+	if addr == "" {
+		return nil, nil
+	}
+	db := 0
+	if d := strings.TrimSpace(os.Getenv("REDIS_DB")); d != "" {
+		if n, e := strconv.Atoi(d); e == nil {
+			db = n
+		}
+	}
+	return &redis.Options{
+		Addr:     addr,
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       db,
+	}, nil
+}
+
+func accountsRedisKey() string {
+	k := strings.TrimSpace(os.Getenv("REDIS_ACCOUNTS_KEY"))
+	if k != "" {
+		return k
+	}
+	return "mail:store"
 }
 
 func New(path string) (*Store, error) {
-	s := &Store{path: path, Accounts: []Account{}}
+	opts, err := redisOptionsFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	key := accountsRedisKey()
+	s := &Store{path: path, Accounts: []Account{}, redisKey: key}
+
+	if opts != nil {
+		s.rdb = redis.NewClient(opts)
+		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		if err := s.rdb.Ping(ctx).Err(); err != nil {
+			_ = s.rdb.Close()
+			return nil, fmt.Errorf("redis: %w", err)
+		}
+		if err := s.load(); err != nil {
+			_ = s.rdb.Close()
+			return nil, err
+		}
+		return s, nil
+	}
+
 	if err := s.load(); err != nil {
-		// If file doesn't exist, start fresh
 		if os.IsNotExist(err) {
 			return s, nil
 		}
@@ -120,6 +190,21 @@ func New(path string) (*Store, error) {
 }
 
 func (s *Store) load() error {
+	if s.rdb != nil {
+		ctx := context.Background()
+		data, err := s.rdb.Get(ctx, s.redisKey).Bytes()
+		if err == redis.Nil {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if len(data) == 0 {
+			return nil
+		}
+		return json.Unmarshal(data, &s.Accounts)
+	}
+
 	data, err := os.ReadFile(s.path)
 	if err != nil {
 		return err
@@ -134,6 +219,10 @@ func (s *Store) save() error {
 	data, err := json.MarshalIndent(s.Accounts, "", "  ")
 	if err != nil {
 		return err
+	}
+	if s.rdb != nil {
+		ctx := context.Background()
+		return s.rdb.Set(ctx, s.redisKey, data, 0).Err()
 	}
 	return os.WriteFile(s.path, data, 0600)
 }

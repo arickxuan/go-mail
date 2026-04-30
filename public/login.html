@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员登录 | 验证访问</title>
     <style>
         * {
@@ -26,6 +26,7 @@
             max-width: 420px;
             width: 100%;
             background: rgba(255, 255, 255, 0.08);
+            -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             border-radius: 2rem;
             padding: 2rem 1.8rem 2.2rem 1.8rem;
@@ -88,6 +89,7 @@
             color: #d6e6f0;
             font-size: 1.2rem;
             font-weight: 500;
+            -webkit-user-select: none;
             user-select: none;
         }
         .password-input {
@@ -150,6 +152,7 @@
         }
         .error-message {
             background: rgba(235, 87, 87, 0.2);
+            -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
             border-left: 3px solid #ff6b6b;
             padding: 0.7rem;

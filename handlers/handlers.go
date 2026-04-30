@@ -449,7 +449,7 @@ func isKnownIMAPProvider(provider store.ProviderType) bool {
 }
 
 func (h *Handler) GetMailHtml(c *gin.Context) {
-	html, err := os.ReadFile("web/mail.html")
+	html, err := os.ReadFile("public/mail.html")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "read file: " + err.Error()})
 		return

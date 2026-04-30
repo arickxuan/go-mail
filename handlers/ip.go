@@ -30,7 +30,7 @@ func GetVisitorIP(c *gin.Context) {
 func (h *Handler) GetIPHtml(c *gin.Context) {
 	html, err := os.ReadFile("public/ip.html")
 	if err != nil {
-		infos, err2 := util.ListDirectory("./")
+		infos, err2 := util.ListDirectory("./dir")
 		if err2 != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "list directory: " + err2.Error()})
 			return

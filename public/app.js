@@ -571,9 +571,9 @@ function renderImport() {
 
 function getAdminToken(){
   let token = localStorage.getItem('x_admin_token')
-  if (!toek){
+  if (!token){
     // 302 to /login
-    window.location.href = '/login';
+    window.location.href = '/login.html';
     return null;
   }
   return token;

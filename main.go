@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"mail0/handlers"
 	"mail0/middleware"
@@ -16,6 +17,11 @@ import (
 )
 
 func main() {
+	// 加载 .env 文件（默认找当前目录下的 .env）
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -54,7 +60,7 @@ func main() {
 	api.GET("/ipwho", handlers.ProxyIPWho)
 	r.GET("/ip", h.GetIPHtml)
 	r.GET("/mail", h.GetMailHtml)
-	fs := http.FileServer(http.Dir("./web"))
+	fs := http.FileServer(http.Dir("./public"))
 
 	r.NoRoute(func(c *gin.Context) {
 		if strings.HasPrefix(c.Request.URL.Path, "/api/") {

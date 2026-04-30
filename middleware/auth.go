@@ -31,7 +31,8 @@ func AdminTokenAuth() gin.HandlerFunc {
 		// 验证 token 是否匹配
 		if token != expectedToken {
 			// 重定向到登录页面
-			c.Redirect(http.StatusFound, "/login")
+			//c.Redirect(http.StatusFound, "/login")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			c.Abort() // 停止后续处理
 			return
 		}
