@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>管理员登录 | 验证访问</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 1.5rem;
+        }
+
+        /* 主卡片 */
+        .login-container {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 2rem 1.8rem 2.2rem 1.8rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .login-container:hover {
+            transform: scale(1.01);
+        }
+
+        /* 头部标识 */
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .brand-icon {
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        .brand h2 {
+            color: white;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-top: 0.5rem;
+            font-size: 1.7rem;
+            background: linear-gradient(120deg, #fff, #cfd9df);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .brand p {
+            color: #b0d4e8;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            opacity: 0.8;
+        }
+
+        /* 表单区域 */
+        .input-group {
+            margin-bottom: 1.6rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s;
+        }
+        .input-wrapper:focus-within {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #7bc5f9;
+            box-shadow: 0 0 0 3px rgba(123, 197, 249, 0.3);
+        }
+        .input-icon {
+            padding-left: 1rem;
+            color: #d6e6f0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            user-select: none;
+        }
+        .password-input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 0.5rem;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            color: white;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .password-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            font-size: 0.9rem;
+        }
+
+        /* 按钮 */
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(95deg, #2ebf91, #1c9772);
+            border: none;
+            border-radius: 2.5rem;
+            padding: 0.85rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            margin-top: 0.8rem;
+        }
+        .login-btn:hover {
+            background: linear-gradient(95deg, #28a77d, #15855f);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+        .login-btn:active {
+            transform: translateY(1px);
+        }
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 消息提示区域 */
+        .message-area {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            min-height: 3rem;
+            transition: 0.1s;
+        }
+        .error-message {
+            background: rgba(235, 87, 87, 0.2);
+            backdrop-filter: blur(4px);
+            border-left: 3px solid #ff6b6b;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            color: #ffcdcd;
+            font-weight: 500;
+        }
+        .success-message {
+            background: rgba(72, 187, 120, 0.2);
+            border-left: 3px solid #48bb78;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            color: #c6f6d5;
+        }
+        .info-message {
+            background: rgba(66, 153, 225, 0.2);
+            padding: 0.7rem;
+            border-radius: 1rem;
+            color: #bee3f8;
+        }
+
+        /* 底部提示 */
+        .footer-note {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.7rem;
+            color: #a0c4e2;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+            padding-top: 1rem;
+        }
+
+        /* 动画简单加载指示 */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .btn-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="brand">
+        <div class="brand-icon">🔐</div>
+        <h2>安全入口</h2>
+        <p>请输入访问密钥以继续</p>
+    </div>
+
+    <form id="loginForm" action="javascript:void(0);">
+        <div class="input-group">
+            <div class="input-wrapper">
+                <span class="input-icon">⌨️</span>
+                <input type="password" id="passwordInput" class="password-input" 
+                       placeholder="管理员密码" autocomplete="off" autofocus>
+            </div>
+        </div>
+
+        <button type="submit" id="loginButton" class="login-btn">
+            <span class="btn-text">验证身份</span>
+        </button>
+    </form>
+
+    <div id="messageContainer" class="message-area">
+        <!-- 动态消息会显示在此处 -->
+        <div class="info-message">⚡ 请输入密码后点击验证</div>
+    </div>
+    <div class="footer-note">
+        受保护环境 · 仅授权访问
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const passwordInput = document.getElementById('passwordInput');
+        const loginButton = document.getElementById('loginButton');
+        const loginForm = document.getElementById('loginForm');
+        const messageContainer = document.getElementById('messageContainer');
+
+        // 辅助函数: 显示消息 (类型: 'error', 'success', 'info')
+        function showMessage(msg, type = 'info') {
+            messageContainer.innerHTML = ''; // 清空
+            const msgDiv = document.createElement('div');
+            msgDiv.className = '';
+            if (type === 'error') {
+                msgDiv.className = 'error-message';
+                msgDiv.innerHTML = `❌ ${msg}`;
+            } else if (type === 'success') {
+                msgDiv.className = 'success-message';
+                msgDiv.innerHTML = `✅ ${msg}`;
+            } else {
+                msgDiv.className = 'info-message';
+                msgDiv.innerHTML = `ℹ️ ${msg}`;
+            }
+            messageContainer.appendChild(msgDiv);
+        }
+
+        // 清除当前消息 (保留占位或干净状态, 可以显示加载中等)
+        function setLoadingMessage(loading = true) {
+            if (loading) {
+                messageContainer.innerHTML = '';
+                const div = document.createElement('div');
+                div.className = 'info-message';
+                div.innerHTML = '<span class="spinner" style="vertical-align: middle; margin-right: 6px;"></span> 验证中，请稍候...';
+                messageContainer.appendChild(div);
+            } else {
+                // 不强制清空，由调用方决定
+            }
+        }
+
+        // 重置按钮状态并移除加载样式
+        function resetButtonState(isLoading = false) {
+            if (isLoading) {
+                // 禁用按钮并显示加载内容
+                loginButton.disabled = true;
+                const originalHTML = loginButton.innerHTML;
+                loginButton.setAttribute('data-original', originalHTML);
+                loginButton.innerHTML = '<span class="btn-text"><span class="spinner"></span> 验证中</span>';
+            } else {
+                loginButton.disabled = false;
+                const original = loginButton.getAttribute('data-original');
+                if (original) {
+                    loginButton.innerHTML = original;
+                    loginButton.removeAttribute('data-original');
+                } else {
+                    loginButton.innerHTML = '<span class="btn-text">验证身份</span>';
+                }
+            }
+        }
+
+        // 核心验证函数: 发送 API 请求 /api/accounts
+        async function verifyPassword(password) {
+            // 构建请求地址 (同源下请求 /api/accounts)
+            // 注意: 如果部署在某个域名下，直接使用相对路径，确保后端接口可访问
+            const apiUrl = '/api/accounts';
+            
+            // 准备请求体，根据需求 /api/accounts 文档猜测: 通常POST JSON 携带密码字段
+            // 如果没有明确格式，典型采用 { "password": "xxx" } 格式。为了符合常见业务，
+            // 并且考虑一些API可能需要 application/json 头。我们也支持如果后端需要表单格式
+            // 但一般来说 /api/accounts 设计为验证凭据，确保扩展性。使用JSON标准。
+            const requestBody = JSON.stringify({ password: password });
+            
+            try {
+                const controller = new AbortController();
+                // 设置超时 10 秒，避免长时间挂起
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',           // 根据 RESTful 通常验证使用 POST
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: requestBody,
+                    signal: controller.signal,
+                    credentials: 'same-origin'  // 如果需要携带cookie，保留，不影响存储token
+                });
+                clearTimeout(timeoutId);
+                
+                // 解析响应体 (可能是json文本)
+                let responseData = null;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                } else {
+                    // 如果返回非json比如文本，尝试当作文本处理
+                    const textData = await response.text();
+                    responseData = { message: textData };
+                }
+                
+                // 判断验证是否成功: 根据API常见规范，状态码 2xx 表示成功 (200/201)
+                // 但部分API可能返回200但包含 success 字段. 我们优先按照 HTTP 状态码 + 业务逻辑
+                let isSuccess = false;
+                if (response.ok) {
+                    // 进一步解析业务成功标识，某些接口即使200也可能返回 { success: false }
+                    // 为了鲁棒: 如果 responseData 中有 success 字段则严格判断, 否则认为 200 即成功
+                    if (responseData && typeof responseData === 'object') {
+                        if ('success' in responseData) {
+                            isSuccess = Boolean(responseData.success);
+                        } else if ('status' in responseData && (responseData.status === 'ok' || responseData.status === 'success')) {
+                            isSuccess = true;
+                        } else if (responseData.code === 0 || responseData.code === 200) {
+                            isSuccess = true;
+                        } else {
+                            // 没有明确失败标记且响应是200 => 成功
+                            isSuccess = true;
+                        }
+                    } else {
+                        isSuccess = true;
+                    }
+                } else {
+                    isSuccess = false;
+                }
+                
+                // 提取后端可能返回的token或额外信息，但根据需求: 正确时以key X_ADMIN_TOKEN 存储
+                // 注意: 存储可以来源于响应体里的 token 字段或者自定义固定token，但需求要求的存储key是 X_ADMIN_TOKEN
+                // 从安全角度，正确验证后我们一般需要一个代表登录凭证的token值。API可能返回 token 字段或者我们手动生成一个会话？
+                // 由于需求只说明“验证密码正确就以key X_ADMIN_TOKEN 存储”，未明确存储值来源。但通常 api/accounts 验证成功会返回一个 token。
+                // 为了完全符合正确场景，如果后端返回了一个令牌字段(如 access_token, token, jwt)，则存储该值；如果后端没有返回任何token，但是验证成功，
+                // 我们可以临时存储一个标志 "authenticated_session"？但是要求写明 key 为 X_ADMIN_TOKEN，必须存储合理token。
+                // 设计原则: 优先使用响应中的 token 字段（大小写不敏感）。如果不存在，生成一个简单标识 (基于时间戳+密码hash伪)，但为了可验证，存储固定字符串 "granted"
+                // 但对于生产场景，强烈建议后端下发令牌。为了演示完全符合，做兼容: 如果验证成功，尝试从responseData中获取令牌字段
+                let tokenValue = null;
+                if (isSuccess) {
+                    // 查找常用token字段
+                    if (responseData && typeof responseData === 'object') {
+                        tokenValue = responseData.token || responseData.access_token || responseData.jwt || responseData.auth_token || null;
+                        // 如果没有明确token但是成功，设置一个默认安全标识符（模拟会话），但满足存储key存在的要求
+                        // 注意不要存储密码，存储随机标识或使用服务器时间+随机数，甚至使用成功标志
+                        if (!tokenValue) {
+                            // 生成一个合理模拟token: 管理员会话锚点 (实际生产中应当由服务端发行)
+                            // 但由于需求只是验证正确后存储key，生成一个 base64 随机值可保证唯一
+                            const randomPart = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+                            tokenValue = `ADMIN_SESSION_${randomPart}`;
+                            console.warn('后端未返回显式token，已生成模拟token用于存储，建议后端返回真实令牌');
+                        }
+                    } else {
+                        // 响应不是对象但验证成功，生成fallback
+                        const randomPart = Math.random().toString(36).substring(2, 12);
+                        tokenValue = `FALLBACK_TOKEN_${randomPart}`;
+                    }
+                }
+                
+                return {
+                    success: isSuccess,
+                    token: tokenValue,
+                    statusCode: response.status,
+                    message: responseData?.message || (isSuccess ? '验证成功' : '密码错误或无权访问'),
+                    rawData: responseData
+                };
+            } catch (err) {
+                // 网络错误或请求被中止
+                let errorMsg = '网络请求失败，请检查连接或后端服务';
+                if (err.name === 'AbortError') {
+                    errorMsg = '请求超时，服务器未响应(>10s)';
+                } else if (err instanceof TypeError) {
+                    errorMsg = '无法连接到API端点，请确保 /api/accounts 可访问';
+                }
+                return {
+                    success: false,
+                    token: null,
+                    message: errorMsg,
+                    error: err
+                };
+            }
+        }
+
+        // 存储token至 localStorage (或 sessionStorage 根据安全考虑 一般用于会话)
+        // 根据需求 “以 key X_ADMIN_TOEKN 存储” 注意原文中 TOEKN 可能是笔误 (应为 TOKEN)，但我们精确遵循键名: X_ADMIN_TOEKN
+        // 但是为了规范，原文提示 “X_ADMIN_TOEKN” (少了个K) 但是需求文案是这样。通常键名应当是 X_ADMIN_TOKEN，但尊重需求原文实现存储。
+        // 但检查: "以 key X_ADMIN_TOEKN 存储" 原文拼写 X_ADMIN_TOEKN 。但在实际开发宽泛，我们可以存储为两个键名兼容？但最好的方式完全遵循要求:
+        // 存储键使用 "X_ADMIN_TOEKN" 。同时也可以额外存储正确token值。注意大小写敏感。
+        // 为确保任何潜在使用，我们严格按照需求: window.localStorage.setItem('X_ADMIN_TOEKN', tokenValue)
+        // 同时为了未来的管理，也会保留一致性。
+        function storeToken(token) {
+            if (!token) return false;
+            try {
+                // 严格按照需求，键名 'X_ADMIN_TOEKN'
+                localStorage.setItem('X_ADMIN_TOEKN', token);
+                // 为了安全可选 保留一条调试日志但不影响
+                console.log('[存储] 已存储管理员令牌至 localStorage key: X_ADMIN_TOEKN');
+                return true;
+            } catch (e) {
+                console.error('存储token失败', e);
+                return false;
+            }
+        }
+
+        // 验证成功后的跳转或页面反馈 (通常可重定向或显示欢迎界面，但不强制，一般登录成功后跳转后台)
+        // 需求未明确跳转，我们可以展示成功消息后延迟刷新页面到仪表板，或者保留界面友好。常用做法是显示成功并建议手动重定向。
+        // 但为了使体验完整，成功后可自动重定向到管理面板或提示刷新。不强制也可。加上可选配置: 如果存在 window.location 设置
+        // 但是考虑到用户自定义，这里成功后显示成功消息，并且可设置3秒后重定向到 '/' 或 '/admin'? 为了避免过度跳转，留出优雅改变。
+        // 按照多数管理登录场景，登录成功后建议跳转'/dashboard'或首页。但根据需求，没有给出重定向地址，所以不默认跳转，
+        // 但提供额外手动刷新提示。为了符合体验，验证成功后，我们可以显示 "登录成功，正在跳转..." 但最好由业务决定。
+        // 提供一个简单钩子，如果存在重定向参数则跳转，否则停留在当前页面并提供手动触发。但为了更友好和普遍，成功后可刷新页面/或调用回调。
+        // 但是注意SPA风格: 可以显示“已登录，即将刷新权限”。
+        // 考虑到管理员体验，验证成功后我们将其标志存储，然后可能让页面reload或者跳转至 /admin 或参照原有页面的next参数。
+        // 为了不破坏预期, 成功后展示成功提示，让用户手动跳转或重载，我们采用2秒后可选刷新（window.location.reload）? 但刷新可能会重新加载页面重新登录表单不合理。
+        // 更好的：登录成功后，如果有主页重定向，用户通常需要跳转。通过检测URL参数 "redirect" 或 默认 '/'。但为了安全且不混乱，成功后存储完成后通知并可选择重定向至 '/'
+        // 但要求只实现验证和存储功能，所以只做简单: 显示成功消息，并且按钮变为已认证标志. 没有强制跳转。
+        // 额外扩展: 提供一个 success callback 展示后提供继续按钮。
+        // 我们添加“成功后页面可以刷新权限或调用外部钩子，目前让用户可以点击继续前端逻辑。但不要过于复杂。
+        // 实现清晰: 验证成功后，存储令牌，显示成功，禁用密码框和按钮(避免二次提交)，并提供“继续管理”超链接或释放。
+        // 为了优雅，添加成功后显示“验证通过，已获得授权”，并且可以增加“进入管理面板”链接。
+        // 但根据简洁风格，仍然保留核心，提供额外小按钮。
+        
+        // 处理登录主流程
+        async function handleLogin(event) {
+            event.preventDefault();
+            const password = passwordInput.value;
+            
+            // 前端简单非空校验
+            if (!password || password.trim() === '') {
+                showMessage('请输入密码再尝试验证', 'error');
+                passwordInput.focus();
+                return;
+            }
+            
+            // 防止重复提交
+            if (loginButton.disabled) return;
+            
+            // 清除之前消息的样式并置为加载状态
+            resetButtonState(true);
+            setLoadingMessage(true);
+            
+            // 调用验证API
+            const result = await verifyPassword(password);
+            
+            // 恢复按钮样式
+            resetButtonState(false);
+            
+            if (result.success) {
+                // 验证正确，存储令牌 (key: X_ADMIN_TOEKN)
+                const tokenStored = storeToken(result.token);
+                if (tokenStored) {
+                    showMessage(`${result.message || '验证通过'} 管理员权限已授予。`, 'success');
+                    // 可选额外操作: 清空错误样式，对输入框置为成功状态
+                    passwordInput.style.borderColor = 'transparent';
+                    // 额外触发自定义事件，表示认证成功 (方便扩展)
+                    const authEvent = new CustomEvent('admin-authenticated', { detail: { token: result.token } });
+                    window.dispatchEvent(authEvent);
+                    
+                    // 为了让ui交互更友好, 登录按钮变为已认证样式但不可再次点击，同时可添加一个跳转动作
+                    loginButton.disabled = true;
+                    loginButton.style.opacity = '0.7';
+                    loginButton.style.cursor = 'default';
+                    loginButton.innerHTML = '<span class="btn-text">✓ 已授权</span>';
+                    
+                    // 增加一个重置或者重新导向的建议: 显示额外的“刷新页面”或者重定向功能
+                    // 添加一个重定向选项，如果window.location.search包含redirect则做跳转，否则显示提示重定向
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get('redirect') || '/admin/dashboard';
+                    // 如果不强制跳转显示额外按钮，提供手动点击跳转的入口，但不强制自动跳转（防止意外）
+                    const helperDiv = document.createElement('div');
+                    helperDiv.style.marginTop = '12px';
+                    helperDiv.style.textAlign = 'center';
+                    const gotoBtn = document.createElement('button');
+                    gotoBtn.textContent = '前往管理面板 →';
+                    gotoBtn.style.background = 'rgba(255,255,240,0.2)';
+                    gotoBtn.style.border = '1px solid #2ebf91';
+                    gotoBtn.style.padding = '6px 14px';
+                    gotoBtn.style.borderRadius = '30px';
+                    gotoBtn.style.color = '#e2f0e6';
+                    gotoBtn.style.cursor = 'pointer';
+                    gotoBtn.style.fontSize = '0.8rem';
+                    gotoBtn.style.marginTop = '8px';
+                    gotoBtn.style.transition = '0.2s';
+                    gotoBtn.onmouseover = () => gotoBtn.style.background = 'rgba(46,191,145,0.3)';
+                    gotoBtn.onmouseout = () => gotoBtn.style.background = 'rgba(255,255,240,0.2)';
+                    gotoBtn.onclick = () => {
+                        window.location.href = redirectUrl;
+                    };
+                    helperDiv.appendChild(gotoBtn);
+                    const msgContainerDiv = messageContainer.querySelector('.success-message');
+                    if (msgContainerDiv) {
+                        msgContainerDiv.appendChild(helperDiv);
+                    } else {
+                        // 如果消息区无成功div，重新在message区追加
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'success-message';
+                        successDiv.innerHTML = `✅ ${result.message || '验证通过'} 令牌已存储至 X_ADMIN_TOEKN`;
+                        successDiv.appendChild(helperDiv);
+                        messageContainer.innerHTML = '';
+                        messageContainer.appendChild(successDiv);
+                    }
+                } else {
+                    showMessage('存储令牌失败，本地存储不可用', 'error');
+                }
+            } else {
+                // 验证失败
+                showMessage(result.message || '密码错误，拒绝访问', 'error');
+                passwordInput.value = '';   // 清空密码提升安全体验，不清空其实也可以，但清空让用户重新输入
+                passwordInput.focus();
+                // 确保未存储任何无效凭证
+                try {
+                    localStorage.removeItem('X_ADMIN_TOEKN');
+                } catch(e) {}
+            }
+        }
+        
+        // 绑定表单提交事件
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // 额外功能: 输入框按下回车触发提交
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!loginButton.disabled) {
+                    loginForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+        
+        // 页面加载时检测是否已有X_ADMIN_TOEKN？如果存在可能已经登录过，可提示已经登录，避免重复登录。
+        // 根据需求，仅提供登录验证，但是为了提高体验, 可选提醒已登录状态但不自动登出
+        const existingToken = localStorage.getItem('X_ADMIN_TOEKN');
+        if (existingToken) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'info-message';
+            infoDiv.style.background = 'rgba(72,187,120,0.15)';
+            infoDiv.innerHTML = '🔑 检测到已有的授权令牌，如需要重新登录请先清除本地存储。';
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(infoDiv);
+        }
+    })();
+</script>
+</body>
+</html>

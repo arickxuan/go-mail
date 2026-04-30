@@ -7,13 +7,14 @@ function $$(sel) { return document.querySelectorAll(sel); }
 async function api(path, opts = {}) {
   const url = API + path;
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    headers: { 'Content-Type': 'application/json','X-ADMIN-TOKEN': getAdminToken(), ...(opts.headers || {}) },
     ...opts
   });
   let data;
   const text = await res.text();
   try { data = JSON.parse(text); } catch { data = text; }
   if (!res.ok) {
+    DelAdminToken();
     const msg = (data && data.error) || (typeof data === 'string' ? data : res.statusText);
     throw new Error(msg);
   }
@@ -566,6 +567,26 @@ function renderImport() {
       showToast(err.message, 'error');
     }
   });
+}
+
+function getAdminToken(){
+  let token = localStorage.getItem('x_admin_token')
+  if (!toek){
+    // 302 to /login
+    window.location.href = '/login';
+    return null;
+  }
+  return token;
+}
+
+
+
+function setAdminToken(token){
+  localStorage.setItem('x_admin_token', token);
+}
+
+function DelAdminToken(){
+  localStorage.removeItem('x_admin_token');
 }
 
 // === Init ===
