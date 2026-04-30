@@ -47,7 +47,9 @@ func main() {
 	h := handlers.New(s)
 	api := r.Group("/api")
 	h.RegisterAPIRoutes(api)
-
+	api.GET("/ip", handlers.GetVisitorIP)
+	api.GET("/ipwho", handlers.ProxyIPWho)
+	r.GET("/ip", h.GetIPHtml)
 	fs := http.FileServer(http.Dir("./web"))
 
 	r.NoRoute(func(c *gin.Context) {

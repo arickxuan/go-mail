@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -61,20 +62,20 @@ func (h *Handler) getAccount(c *gin.Context) {
 }
 
 type createAccountRequest struct {
-	Label        string            `json:"label"`
-	Email        string            `json:"email"`
-	AccountType  store.AccountType `json:"account_type"`
+	Label        string             `json:"label"`
+	Email        string             `json:"email"`
+	AccountType  store.AccountType  `json:"account_type"`
 	ProviderType store.ProviderType `json:"provider_type"`
-	Password     string            `json:"password,omitempty"`
-	IMAPServer   string            `json:"imap_server,omitempty"`
-	IMAPPort     int               `json:"imap_port,omitempty"`
-	IMAPTLS      bool              `json:"imap_tls,omitempty"`
-	POP3Server   string            `json:"pop3_server,omitempty"`
-	POP3Port     int               `json:"pop3_port,omitempty"`
-	POP3TLS      bool              `json:"pop3_tls,omitempty"`
-	ClientID     string            `json:"client_id,omitempty"`
-	TenantID     string            `json:"tenant_id,omitempty"`
-	RefreshToken string            `json:"refresh_token,omitempty"`
+	Password     string             `json:"password,omitempty"`
+	IMAPServer   string             `json:"imap_server,omitempty"`
+	IMAPPort     int                `json:"imap_port,omitempty"`
+	IMAPTLS      bool               `json:"imap_tls,omitempty"`
+	POP3Server   string             `json:"pop3_server,omitempty"`
+	POP3Port     int                `json:"pop3_port,omitempty"`
+	POP3TLS      bool               `json:"pop3_tls,omitempty"`
+	ClientID     string             `json:"client_id,omitempty"`
+	TenantID     string             `json:"tenant_id,omitempty"`
+	RefreshToken string             `json:"refresh_token,omitempty"`
 }
 
 func (h *Handler) addAccount(c *gin.Context) {
@@ -445,4 +446,14 @@ func isKnownIMAPProvider(provider store.ProviderType) bool {
 	default:
 		return false
 	}
+}
+
+func (h *Handler) GetMailHtml(c *gin.Context) {
+	html, err := os.ReadFile("web/mail.html")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "read file: " + err.Error()})
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", html)
+
 }
