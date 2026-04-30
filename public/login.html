@@ -411,19 +411,19 @@
         }
 
         // 存储token至 localStorage (或 sessionStorage 根据安全考虑 一般用于会话)
-        // 根据需求 “以 key X_ADMIN_TOEKN 存储” 注意原文中 TOEKN 可能是笔误 (应为 TOKEN)，但我们精确遵循键名: X_ADMIN_TOEKN
-        // 但是为了规范，原文提示 “X_ADMIN_TOEKN” (少了个K) 但是需求文案是这样。通常键名应当是 X_ADMIN_TOKEN，但尊重需求原文实现存储。
-        // 但检查: "以 key X_ADMIN_TOEKN 存储" 原文拼写 X_ADMIN_TOEKN 。但在实际开发宽泛，我们可以存储为两个键名兼容？但最好的方式完全遵循要求:
-        // 存储键使用 "X_ADMIN_TOEKN" 。同时也可以额外存储正确token值。注意大小写敏感。
-        // 为确保任何潜在使用，我们严格按照需求: window.localStorage.setItem('X_ADMIN_TOEKN', tokenValue)
+        // 根据需求 “以 key X_ADMIN_TOKEN 存储” 注意原文中 TOEKN 可能是笔误 (应为 TOKEN)，但我们精确遵循键名: X_ADMIN_TOKEN
+        // 但是为了规范，原文提示 “X_ADMIN_TOKEN” (少了个K) 但是需求文案是这样。通常键名应当是 X_ADMIN_TOKEN，但尊重需求原文实现存储。
+        // 但检查: "以 key X_ADMIN_TOKEN 存储" 原文拼写 X_ADMIN_TOKEN 。但在实际开发宽泛，我们可以存储为两个键名兼容？但最好的方式完全遵循要求:
+        // 存储键使用 "X_ADMIN_TOKEN" 。同时也可以额外存储正确token值。注意大小写敏感。
+        // 为确保任何潜在使用，我们严格按照需求: window.localStorage.setItem('X_ADMIN_TOKEN', tokenValue)
         // 同时为了未来的管理，也会保留一致性。
         function storeToken(token) {
             if (!token) return false;
             try {
-                // 严格按照需求，键名 'X_ADMIN_TOEKN'
-                localStorage.setItem('X_ADMIN_TOEKN', token);
+                // 严格按照需求，键名 'X_ADMIN_TOKEN'
+                localStorage.setItem('X_ADMIN_TOKEN', token);
                 // 为了安全可选 保留一条调试日志但不影响
-                console.log('[存储] 已存储管理员令牌至 localStorage key: X_ADMIN_TOEKN');
+                console.log('[存储] 已存储管理员令牌至 localStorage key: X_ADMIN_TOKEN');
                 return true;
             } catch (e) {
                 console.error('存储token失败', e);
@@ -475,7 +475,7 @@
             resetButtonState(false);
             
             if (result.success) {
-                // 验证正确，存储令牌 (key: X_ADMIN_TOEKN)
+                // 验证正确，存储令牌 (key: X_ADMIN_TOKEN)
                 const tokenStored = storeToken(password);
                 if (tokenStored) {
                     showMessage(`${result.message || '验证通过'} 管理员权限已授予。`, 'success');
@@ -494,7 +494,7 @@
                     // 增加一个重置或者重新导向的建议: 显示额外的“刷新页面”或者重定向功能
                     // 添加一个重定向选项，如果window.location.search包含redirect则做跳转，否则显示提示重定向
                     const urlParams = new URLSearchParams(window.location.search);
-                    const redirectUrl = urlParams.get('redirect') || '/main.html';
+                    const redirectUrl = urlParams.get('redirect') || '/mail.html';
                     // 如果不强制跳转显示额外按钮，提供手动点击跳转的入口，但不强制自动跳转（防止意外）
                     const helperDiv = document.createElement('div');
                     helperDiv.style.marginTop = '12px';
@@ -523,7 +523,7 @@
                         // 如果消息区无成功div，重新在message区追加
                         const successDiv = document.createElement('div');
                         successDiv.className = 'success-message';
-                        successDiv.innerHTML = `✅ ${result.message || '验证通过'} 令牌已存储至 X_ADMIN_TOEKN`;
+                        successDiv.innerHTML = `✅ ${result.message || '验证通过'} 令牌已存储至 X_ADMIN_TOKEN`;
                         successDiv.appendChild(helperDiv);
                         messageContainer.innerHTML = '';
                         messageContainer.appendChild(successDiv);
@@ -538,7 +538,7 @@
                 passwordInput.focus();
                 // 确保未存储任何无效凭证
                 try {
-                    localStorage.removeItem('X_ADMIN_TOEKN');
+                    localStorage.removeItem('X_ADMIN_TOKEN');
                 } catch(e) {}
             }
         }
@@ -556,9 +556,9 @@
             }
         });
         
-        // 页面加载时检测是否已有X_ADMIN_TOEKN？如果存在可能已经登录过，可提示已经登录，避免重复登录。
+        // 页面加载时检测是否已有X_ADMIN_TOKEN？如果存在可能已经登录过，可提示已经登录，避免重复登录。
         // 根据需求，仅提供登录验证，但是为了提高体验, 可选提醒已登录状态但不自动登出
-        const existingToken = localStorage.getItem('X_ADMIN_TOEKN');
+        const existingToken = localStorage.getItem('X_ADMIN_TOKEN');
         if (existingToken) {
             const infoDiv = document.createElement('div');
             infoDiv.className = 'info-message';
