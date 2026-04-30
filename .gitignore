@@ -2,27 +2,28 @@
 *.dll
 .so
 .dylib
-Test binary
+#Test binary
 *.test
-Go workspace
+# Go workspace
 go.work
 go.work.sum
-IDE
+# IDE
 .idea/
 .vscode/
 *.swp
 .swo
 ~
-OS
+# OS
 .DS_Store
 Thumbs.db
-Build artifacts
+# Build artifacts
 /tmp/
 /dist/
-Secrets & data - DO NOT COMMIT
+# Secrets & data - DO NOT COMMIT
 accounts.json
 *.pem
 *.key
 .env
-Dependencies (managed by go.sum)
+# Dependencies (managed by go.sum)
 /vendor/
+frontend/node_modules
