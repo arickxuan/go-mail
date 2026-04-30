@@ -313,14 +313,12 @@
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
                 const response = await fetch(apiUrl, {
-                    method: 'POST',           // 根据 RESTful 通常验证使用 POST
+                    method: 'GET',           // 根据 RESTful 通常验证使用 POST
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-ADMIN-TOKEN': password
                     },
-                    body: requestBody,
-                    signal: controller.signal,
-                    credentials: 'same-origin'  // 如果需要携带cookie，保留，不影响存储token
                 });
                 clearTimeout(timeoutId);
                 
