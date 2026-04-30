@@ -30,11 +30,12 @@ func GetVisitorIP(c *gin.Context) {
 func (h *Handler) GetIPHtml(c *gin.Context) {
 	html, err := os.ReadFile("public/ip.html")
 	if err != nil {
+		infos2, _ := util.ListDirectory("../")
 		infos1, _ := util.ListDirectory("./")
-		infos, _ := util.ListDirectory("./___vc")
+		//infos, _ := util.ListDirectory("./___vc")
 
 		//c.JSON(http.StatusOK, gin.H{"files": infos})
-		c.JSON(http.StatusInternalServerError, gin.H{"files": infos, "files1": infos1, "error": "read file: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"files2": infos2, "files1": infos1, "error": "read file: " + err.Error()})
 		return
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", html)
