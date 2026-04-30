@@ -154,7 +154,7 @@ func accountsRedisKey() string {
 	if k != "" {
 		return k
 	}
-	return "mail:store"
+	return "mail:accounts"
 }
 
 func New(path string) (*Store, error) {
@@ -191,6 +191,7 @@ func New(path string) (*Store, error) {
 
 func (s *Store) load() error {
 	if s.rdb != nil {
+		fmt.Println("s.redisKey", s.redisKey)
 		ctx := context.Background()
 		data, err := s.rdb.Get(ctx, s.redisKey).Bytes()
 		if err == redis.Nil {
@@ -199,6 +200,7 @@ func (s *Store) load() error {
 		if err != nil {
 			return err
 		}
+		fmt.Println("data", string(data))
 		if len(data) == 0 {
 			return nil
 		}

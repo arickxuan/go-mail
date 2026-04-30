@@ -30,3 +30,13 @@ func TestRedis(t *testing.T) {
 	}
 
 }
+
+func TestNew(t *testing.T) {
+	url, err := New("33")
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	t.Log("start", url)
+
+}
