@@ -570,7 +570,7 @@ function renderImport() {
 }
 
 function getAdminToken(){
-  let token = localStorage.getItem('x_admin_token')
+  let token = localStorage.getItem('x_admin_token') || localStorage.getItem('X_ADMIN_TOKEN')
   if (!token){
     // 302 to /login
     window.location.href = '/login.html';
