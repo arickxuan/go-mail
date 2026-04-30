@@ -20,7 +20,7 @@ func main() {
 	// 加载 .env 文件（默认找当前目录下的 .env）
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file", err.Error())
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
