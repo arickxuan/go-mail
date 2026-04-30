@@ -1,15 +1,3 @@
 {
-  //"framework": "go"
-  "experimentalServices": {
-    "frontend": {
-      "entrypoint": "frontend",
-      "routePrefix": "/web",
-      "framework": "nextjs"
-    },
-    "backend": {
-      "entrypoint": "main.go",
-      "routePrefix": "/"
-    }
-  }
-    
-  }
+  "framework": "go"
+}
